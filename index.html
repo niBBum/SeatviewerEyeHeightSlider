@@ -234,8 +234,8 @@ P.view=()=>{const c=C(),i=info(c,S.sel),Bs=B(),bi=info(c,Bs),pp=pos(S.sel),dist=
 <div class="k3"><div class="card"><small>Distance to stage</small><b>~${i.dist} m</b><span class="mu xs">Estimated from your seat</span></div><div class="card"><small>Viewing angle</small><b>${i.angTxt}</b><span class="mu xs">${i.ang?'Angled stage view':'Facing the full stage'}</span></div><div class="card"><small>Seating level</small><b>${i.lvl}</b><span class="mu xs">${i.lvl=='Floor'?'Close to the stage':'Elevated above the floor'}</span></div></div></div>
 <aside class="card sp"><div class="tp"><span>Your perspective</span><span class="av">● Available</span></div><div class="sn"><h3><span class="ab">A</span>${i.name}</h3><b class="pr">${money(i.price)}</b></div><div class="mu sm" style="display:flex;justify-content:space-between"><span>${i.lvl} · Row ${i.row} · Seat ${S.sel.n}</span><span class="xs">per seat, incl. fees</span></div><div class="hl"></div><div class="tp" style="margin-bottom:0"><span>Your position in the arena</span></div><div class="mini"><svg viewBox="0 0 820 400"><rect x="330" y="20" width="160" height="40" rx="4" fill="#2a2f30"/><text x="410" y="45" text-anchor="middle" fill="#aaa" font-size="14">STAGE</text><path d="M110 150A300 220 0 0 0 710 150" fill="none" stroke="#3a4041" stroke-width="58"/><rect x="300" y="110" width="220" height="110" rx="6" fill="#2a2f30"/><circle cx="${pp.x}" cy="${pp.y}" r="22" fill="#d5fa43"/><text x="${pp.x}" y="${pp.y+7}" text-anchor="middle" font-size="20" font-weight="700" fill="#13170a">A</text></svg></div><b>${i.ang<8?'The big-picture seat.':'A closer, angled seat.'}</b><p class="mu sm" style="margin:8px 0 18px">${i.desc} ${i.dist>35?'A little further back, with the whole night in frame.':'Closer to the energy on stage.'}</p><button class="btn pr lg w" style="justify-content:space-between" data-act="cmpB">Compare another seat ${ic('cmp')}</button><button class="btn w" style="margin-top:12px;height:48px" data-act="saveView">Save this view ${ic('bm')}</button><p class="mu xs" style="text-align:center;margin-top:14px">No commitment. Get the perspective first.</p></aside></div>
 <div class="cmpb"><div style="display:flex;gap:16px;align-items:center">${ic('cmp','ac')}<div><h3>Closer or more centered? See the difference.</h3><div class="mu sm">Compare with ${bi.name} · Row ${bi.row} · Seat ${Bs.n}. Around ${Math.abs(dist)} m ${dist>0?'closer':'further'}, for ${money(Math.abs(i.price-bi.price))} ${i.price>=bi.price?'less':'more'}.</div></div></div><a class="btn lg" href="#/compare" data-act="cmpB">Compare these views ${ic('arrow')}</a></div></main>${footer()}`};
-const EYE={min:.8,max:2.4,seat:1.18,stand:1.65},eyeV=()=>S.eye??EYE.seat;
-const eyeCtl=bar=>`<div class="eye${bar?' bar':''}"><label for="eh">${ic('eye')} Eye height</label><input type="range" id="eh" min="${EYE.min}" max="${EYE.max}" step="0.01" value="${eyeV()}" aria-valuetext="${eyeV().toFixed(2)} metres above the seat"><output id="eo" for="eh">${eyeV().toFixed(2)} m</output><button class="btn sm" type="button" data-act="eyeset" data-v="seat" aria-pressed="${S.eye==null}">Seated</button><button class="btn sm" type="button" data-act="eyeset" data-v="stand" aria-pressed="${S.eye===EYE.stand}">Standing</button></div>`;
+const EYE={min:1,max:2,def:1.7},eyeV=()=>S.eye??EYE.def,eyeSeat=()=>{const h=eyeV(),P=[[1,.45],[1.4,.6],[1.5,.7],[1.6,.83],[1.7,1.18],[1.8,1.4],[2,1.74]];for(let i=1;i<P.length;i++)if(h<=P[i][0])return +(P[i-1][1]+(h-P[i-1][0])/(P[i][0]-P[i-1][0])*(P[i][1]-P[i-1][1])).toFixed(3);return P[P.length-1][1]};
+const eyeCtl=bar=>`<div class="eye${bar?' bar':''}"><label for="eh">${ic('eye')} Your height</label><input type="range" id="eh" min="${EYE.min}" max="${EYE.max}" step="0.01" value="${eyeV()}" aria-valuetext="${eyeV().toFixed(2)} metres tall, seated"><output id="eo" for="eh">${eyeV().toFixed(2)} m</output></div>`;
 function vw(id,i,tag,s){return `<div class="vw" data-vw="${id}"><canvas tabindex="0" role="img" data-s="${s.sec}|${s.r}|${s.n}" aria-label="Interactive 3D preview from ${i.name}, Row ${i.row}, Seat ${s.n}. Drag to look around. Arrow keys turn, plus and minus zoom, Home faces the stage."></canvas><span class="bdg">${ic('cube')} ILLUSTRATIVE 3D PREVIEW</span><button class="fsb" data-act="fs" aria-label="Fullscreen">${ic('full')}</button><span class="tg"><i></i>${tag}</span></div>`}
 const tabh=(k,t)=>`<div class="tabh ${k}"><b>Tab ${k}</b><span class="mu">${t?t.sec+' · '+RW[t.r]+t.n:'Pick a seat'}</span></div>`;
 P.compare=()=>{const pk=S.pick=='B',c=C(),A=pk?S.keepA:S.sel,Bs=pk?S.sel:B(),a=info(c,A),b=info(c,Bs),cs=(x,y,n)=>{const t=[];if(x.ang<y.ang)t.push('Most centered');if(x.price<y.price)t.push('Save '+money(y.price-x.price));if(x.dist<y.dist)t.push(`${y.dist-x.dist} m closer`);return t[0]||'Similar'};
@@ -618,20 +618,19 @@ const seat3=s=>isF(s.sec)
 function vApply(el){const v=el._v;if(!v)return;v.setZoom(el._s.z);const z=$('#zl');if(z)z.textContent=el._s.z.toFixed(2).replace(/\.?0+$/,'')+'×'}
 function vReset(el){el._s={z:1};el._v.faceStage();vApply(el)}
 function vDispose(){VW.forEach(o=>{o.ro&&o.ro.disconnect();o.io&&o.io.disconnect()});VW=[]}
-const eyeCap=()=>S.eye==null?'Seated eye level':'Eye height '+eyeV().toFixed(2)+' m';
+const eyeCap=()=>'Seated eye level · '+eyeV().toFixed(2)+' m tall';
 function eyeApply(){const v=eyeV(),h=$('#eh'),o=$('#eo');
- if(h){h.value=v;h.setAttribute('aria-valuetext',v.toFixed(2)+' metres above the seat')}
+ if(h){h.value=v;h.setAttribute('aria-valuetext',v.toFixed(2)+' metres tall, seated')}
  if(o)o.textContent=v.toFixed(2)+' m';
  const c=$('#ecap');if(c)c.textContent=eyeCap();
- $$('.eye [data-act=eyeset]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v=='seat'?S.eye==null:S.eye===EYE.stand)));
- VW.forEach(({v:w,el})=>{if(!el.querySelector('canvas').dataset.sweep){w.eyeH=S.eye;w.dirty=true}})}
-function eyeWire(){const h=$('#eh');if(h)h.oninput=()=>{const x=+h.value;S.eye=Math.abs(x-EYE.seat)<.005?null:x;eyeApply()}}
+ VW.forEach(({v:w,el})=>{if(!el.querySelector('canvas').dataset.sweep){w.eyeH=eyeSeat();w.dirty=true}})}
+function eyeWire(){const h=$('#eh');if(h)h.oninput=()=>{const x=+h.value;S.eye=Math.abs(x-EYE.def)<.005?null:x;eyeApply()}}
 function vInit(){
  vDispose();Arena3D.build();eyeWire();
  const L=$$('.vw'),all=el=>S.sync?L:[el];
  L.forEach(el=>{
   const cv=$('canvas',el),[sec,r,n]=cv.dataset.s.split('|'),v=new Arena3D.Viewer(cv);
-  el._v=v;el._s={z:1};v.lit=S.light;v.eyeH=cv.dataset.sweep?null:S.eye;v.sweep=!!cv.dataset.sweep&&!Arena3D.reduced;
+  el._v=v;el._s={z:1};v.lit=S.light;v.eyeH=cv.dataset.sweep?null:eyeSeat();v.sweep=!!cv.dataset.sweep&&!Arena3D.reduced;
   v.setSeat(seat3({sec,r:+r,n:+n}));
   const rec={v,el};VW.push(rec);
   if(window.ResizeObserver){rec.ro=new ResizeObserver(()=>{const w=el.clientWidth,h=el.clientHeight;if(w>0&&h>0)v.setSize(w,h)});rec.ro.observe(el)}
@@ -678,7 +677,6 @@ const A={
  usepick:()=>{if(S.pick=='B'&&same(S.sel,S.keepA)){toast('Choose a different seat to compare with seat A.');return}if(S.pick=='B'){S.alt={...S.sel};S.sel=S.keepA}else if(same(S.alt,S.sel))S.alt=null;S.pick=null;go('compare')},
  cancelpick:()=>{const fromCmp=route.last=='compare';S.sel=S.keepA||S.sel;S.pick=null;go(fromCmp?'view':'compare')},closecmp:()=>{if(S.pick&&S.keepA)S.sel=S.keepA;S.pick=null;S.alt=null;go('view')},clearpick:()=>{S.pick=null},changeA:()=>{},
  chg:el=>{if(el.dataset.k=='B'){S.alt=null;S.pick=null;go('compare');return}S.pick=el.dataset.k;S.keepA={...S.sel};if(S.pick=='B')S.sel={...B()};S.act=S.sel.sec;go('choose')},
- eyeset:el=>{S.eye=el.dataset.v=='stand'?EYE.stand:null;eyeApply()},
  light:()=>{S.light=!S.light;VW.forEach(({v})=>{v.lit=S.light;v.dirty=true});const b=$('#lt');b.innerHTML=`<span style="color:${S.light?'var(--ac)':'var(--mu)'}">●</span> ${S.light?'Lighting on':'Lighting off'}`},
  zv:el=>vZoom(+el.dataset.d),rv:()=>$$('.vw').forEach(vReset),rvall:()=>{$$('.vw').forEach(vReset);toast('Views reset.')},
  sync:()=>{S.sync=!S.sync;$('.tgl[data-act=sync]').classList.toggle('on',S.sync)},
