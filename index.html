@@ -174,7 +174,7 @@ function applyQ(){const q=new URLSearchParams((location.hash.split('?')[1])||'')
  const a=rd('');if(a){S.sel=a;S.act=a.sec;S.sp=true}const b=rd('alt_');if(b)S.alt=b}
 function syncUrl(){const r=route.last;if(URLR.includes(r)){const u=urlFor(r);if(location.hash!=u)history.replaceState(null,'',u)}}
 const go=r=>{const u=urlFor(r);if(location.hash==u&&URLR.includes(r))route();else location.hash=u};
-const money=n=>'£'+n;
+const money=n=>'$'+n;
 const logoI=`<span class="lg-i">${ic('seat')}</span>`;
 const logo=h=>`<a class="logo" href="#/${h?'home':'home'}" aria-label="SeatViewer home">${logoI}SeatViewer</a>`;
 function header(a){const u=user();return `<header class="hd"><div class="wrap hr">${logo()}<nav class="nv">${[['discover','Discover concerts'],['how','How it works'],['saved','Saved views']].map(([r,t])=>`<a href="#/${r}" class="${a==r?'on g':''}">${t}</a>`).join('')}</nav><div class="rt"><button class="loc" data-act="city">${ic('pin')} Singapore ${ic('chev')}</button>${u?`<button class="btn sm" data-act="acct">${u.name.split(' ')[0]}</button>`:`<a class="btn sm" href="#/login">Sign in</a>`}</div></div></header>`}
